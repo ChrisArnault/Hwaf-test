@@ -28,13 +28,13 @@ Operation:
 1) get the generator:
 
 ```sh
-> (cd /my/dev; git clone -b HWAF https://github.com/ChristianArnault/CMT.git)
+> (cd /my/dev; git clone https://github.com/ChristianArnault/Hwaf-test.git)
 ```
 
 2) produce the testbed:
 
 ```sh
-> (cd /my/dev; mkdir test; cd test; /my/dev/CMT/generator.sh )
+> (cd /my/dev; mkdir test; cd test; /my/dev/Hwaf-test/generator.sh )
 ```
 
 

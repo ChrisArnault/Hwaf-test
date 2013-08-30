@@ -2,21 +2,32 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-here=$PWD
-
 rm -rf test
 mkdir test
 cd test
 
-python ${DIR}/generator.py projects=3 packages=8
+base="$PWD/test"
+uses=""
+puses=""
 
+set -x
 
-hwaf init A
-cd A
-hwaf setup
-hwaf configure
-hwaf
-hwaf show pkg-tree
+for project in `python $DIR/generator.py projects=1 packages=8 | egrep 'do ' | sed 's/do //'`
+do
+  echo "running in project $project using $uses"
+  hwaf init $project
+  cd $project
+    hwaf setup $puses 
+    hwaf configure
+    hwaf
+    hwaf show pkg-tree
+  cd ..
+  uses="${uses}${base}/$project/install-area"
+  puses="-p=$uses"
+  uses="${uses}:"
+done
+
+exit
 
 for n in `find . -name 'hscript.yml'`
 do

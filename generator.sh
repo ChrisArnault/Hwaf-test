@@ -8,7 +8,8 @@ rm -rf test
 mkdir test
 cd test
 
-python ${DIR}/generator.py projects=1 packages=8
+python ${DIR}/generator.py projects=3 packages=8
+
 
 hwaf init A
 cd A

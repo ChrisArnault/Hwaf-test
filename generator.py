@@ -23,6 +23,18 @@ def write_text (file_name, text):
     finally:
 	f.close ()
 
+def create_dirs (path, end = ''):
+    head, tail = os.path.split (path)
+    #print '> (path=%s end=%s) => (head=%s tail=%s)' % (path, end, head, tail)
+
+    if head != '':
+        create_dirs (head, os.path.join (tail, end))
+
+    try:
+        print '> mkdir %s' % (path)
+        os.mkdir (path)
+    except:
+        pass
 
 CMTProjects = {}
 CMTPackages = {}
@@ -54,19 +66,6 @@ class CMTPackage:
 	#print '> mkdir %s' % (self.path)
 	#os.mkdir (self.path)
 
-	def create_dirs (path, end = ''):
-	    head, tail = os.path.split (path)
-	    #print '> (path=%s end=%s) => (head=%s tail=%s)' % (path, end, head, tail)
-
-	    if head != '':
-		create_dirs (head, os.path.join (tail, end))
-		
-	    try:
-		print '> mkdir %s' % (path)
-		os.mkdir (path)
-	    except:
-		pass
-	    
 	create_dirs (self.path)
 
 	# Create the package structure:
@@ -288,12 +287,12 @@ int main ()
     def set_config_file (self):
 	print '> create %s/hscript.yml' % (self.path)
 
-	longuses = [CMTPackages[u].full_name for u in self.uses]
+        longuses = [ 'Settings_%s' % self.project ]
+
+	longuses.extend ([CMTPackages[u].full_name for u in self.uses])
 	print 'longuses=%s' % longuses
 
-	deps = ''
-	if len (longuses) > 0:
-	    deps = '''
+	deps = '''
   deps: {
     public: %s,
   },  
@@ -351,6 +350,49 @@ build: {
 
 	write_text (os.path.join (self.path, 'hscript.yml'), text)
 
+class Settings:
+    #---------------------------------------------------------
+    def __init__ (self, project):
+        self.name = 'Settings_%s' % project
+	print 'creating the package %s' % (self.name)
+        self.project = project
+        self.path = os.path.join (project, 'src', self.name)	
+
+    #---------------------------------------------------------
+    def set_structure (self):
+        print '> mkdir %(path)s/src' % {'path':self.path}
+        create_dirs (self.path)
+        pwd = os.path.dirname (os.path.realpath(__file__))
+        shutil.copy (os.path.join (pwd, 'install_headers.py'), self.path)
+
+    #---------------------------------------------------------
+    def set_config_file (self):
+        print '> create %s/hscript.yml' % (self.path)
+
+        text = '''
+## -*- yaml -*-
+
+package: {
+  name: "%s",
+  authors: ["my"],
+}
+
+configure: {
+  tools: ["compiler_c", "compiler_cxx", "python"],
+  env: {
+    PYTHONPATH: "${INSTALL_AREA}/python:${PYTHONPATH}"
+  },
+}
+
+build: {
+  hwaf-call: [
+    "install_headers.py",
+  ],
+}
+
+''' % (self.name)
+
+        write_text (os.path.join (self.path, 'hscript.yml'), text)
 
 
 class CMTProject:
@@ -363,6 +405,9 @@ class CMTProject:
 	#self.base = base
 	self.packages = []
 	self.uses = {}
+        self.parents = []
+        self.done = False
+        self.settings = Settings (name)
 
 	for package in range(first_package, first_package + packages):
 	    prefix = ''
@@ -443,6 +488,8 @@ class CMTProject:
 	print '> mkdir %s/__build__' % (self.name)
 	os.mkdir (os.path.join (self.name, "__build__"))
 
+        self.settings.set_structure ()
+
 	for package in self.packages:
 	    p = CMTPackages[package]
 	    p.set_structure ()
@@ -475,16 +522,33 @@ class CMTProject:
 
 	config_dir = self.name
 
+        self.settings.set_config_file ()
+
 	for package in self.packages:
             p = CMTPackages[package]
 	    p.set_config_file ()
 
+    #---------------------------------------------------------
+    def broadcast (self):
 
+        b = []
 
+        if self.done:
+            return b;
 
+        self.done = True
 
+        used = self.get_used_projects ()
+        if len(used) > 0:
+            for k in used:
+                use = CMTProjects[k]
+                bu = use.broadcast ()
+                if len(bu) > 0:
+                    b.extend (bu)
 
+        b.extend (self.name)
 
+        return (b)
 
 
     
@@ -631,6 +695,39 @@ node [shape=box]
 
 	write_text ("generator.dot", text)
 
+        print '''
+
+Show uses for projects:
+'''
+
+        for k in set(CMTProjects.keys()):
+            p = CMTProjects[k]
+            uses = p.get_used_projects ()
+            if len(uses) > 0:
+                text = "%s use " % (p.name)
+                for u in p.get_used_projects ():
+                    child = CMTProjects[u]
+                    child.parents.append (k)
+                    text += "%s " % (u)
+                print text
+
+    #---------------------------------------------------------
+    def broadcast (self):
+        global CMTProjects
+
+        for k in set(CMTProjects.keys()):
+            p = CMTProjects[k]
+            p.done = False
+
+        b = []
+
+        for k in set(CMTProjects.keys()):
+            p = CMTProjects[k]
+            bu = p.broadcast ()
+            if len(bu) > 0:
+                b.extend (bu)
+
+        return (b)
     
 Interface = CMTInterface ()
 
@@ -669,4 +766,13 @@ generator.py
 
     if projects > 0:
 	Interface.generate_project (projects, packages)
+        print '''
+running into all projects
+'''
+
+        b = Interface.broadcast ()
+        for p in b:
+            print 'do %s' % p
+
+        #print '%s' % ['%s '% p for p in b]
 

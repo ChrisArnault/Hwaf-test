@@ -41,6 +41,7 @@ Thumbs.db
 # After the build #
 ######################
 *.*~
+#*.*#
 build
 installarea
 CMakeFiles

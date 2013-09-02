@@ -782,7 +782,14 @@ running into all projects
 	used = p.get_used_projects ()
 	contexts = ''
 	if len(used) > 0:
-	    contexts = "-p=" + ['%s/%s/install-area' % (base, u) for u in used]
+	    contexts = "-p="
+	    first = True
+	    for u in used:
+		if first:
+		    first = False
+		else:
+		    contexts += ':'
+		contexts += '%s/%s/install-area' % (base, u)
 	    
 	print 'do %s - %s' % (name, contexts)
 

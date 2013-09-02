@@ -805,5 +805,7 @@ running into all projects
 	os.system ("hwaf")
 	print ">>> hwaf show pkg-tree"
 	os.system ("hwaf show pkg-tree")
+	print ">>> cd .."
+	os.chdir ("..")
 
 

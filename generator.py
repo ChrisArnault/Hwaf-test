@@ -330,7 +330,7 @@ configure: {
 build: {
 
   test%s: {
-    features: "cxx cxxprogram",
+    features: "cxx cxxprogram hwaf_install_headers",
     includes: "includes",
     export_includes: "includes",
     source: "src/test%s.cxx",
@@ -338,7 +338,7 @@ build: {
   },
 
   Lib%s: {
-    features: "cxx cxxshlib",
+    features: "cxx cxxshlib hwaf_install_headers",
     includes: "includes",
     export_includes: "includes",
     source: "src/Lib%s.cxx",

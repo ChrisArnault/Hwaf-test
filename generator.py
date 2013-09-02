@@ -764,15 +764,33 @@ generator.py
 
     print 'projects=%d packages=%d uses=%s' % ( projects, packages, uses)
 
-    if projects > 0:
-	Interface.generate_project (projects, packages)
-        print '''
+    if projects == 0:
+	print "You should ask for at one project"
+	exit (1)
+
+	
+    Interface.generate_project (projects, packages)
+    print '''
 running into all projects
 '''
 
-        b = Interface.broadcast ()
-        for p in b:
-            print 'do %s' % p
+    base = os.getcwd ()
 
-        #print '%s' % ['%s '% p for p in b]
+    b = Interface.broadcast ()
+    for name in b:
+	p = CMTProjects[name]
+	used = p.get_used_projects ()
+	contexts = ''
+	if len(used) > 0:
+	    contexts = "-p=" + ['%s/%s/install-area' % (base, u) for u in used]
+	    
+	print 'do %s - %s' % (name, contexts)
+
+	os.system ("hwaf init %s" % name)
+	os.chdir (name)
+	os.system ("hwaf setup %s" % contexts)
+	os.system ("hwaf configure")
+	os.system ("hwaf")
+	os.system ("hwaf show pkg-tree")
+
 

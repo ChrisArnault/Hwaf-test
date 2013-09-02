@@ -799,7 +799,7 @@ running into all projects
 	os.chdir (name)
 	print ">>> hwaf setup %s" % contexts
 	os.system ("hwaf setup %s" % contexts)
-	print ">>> hwaf configure")
+	print ">>> hwaf configure"
 	os.system ("hwaf configure")
 	print ">>> hwaf"
 	os.system ("hwaf")

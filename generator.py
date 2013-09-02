@@ -791,13 +791,19 @@ running into all projects
 		    contexts += ':'
 		contexts += '%s/%s/install-area' % (base, u)
 	    
-	print 'do %s - %s' % (name, contexts)
+	print 'do %s with contexts=%s' % (name, contexts)
 
+	print ">>> hwaf init %s" % name
 	os.system ("hwaf init %s" % name)
+	print ">>> cd %s" % name
 	os.chdir (name)
+	print ">>> hwaf setup %s" % contexts
 	os.system ("hwaf setup %s" % contexts)
+	print ">>> hwaf configure")
 	os.system ("hwaf configure")
+	print ">>> hwaf"
 	os.system ("hwaf")
+	print ">>> hwaf show pkg-tree"
 	os.system ("hwaf show pkg-tree")
 
 

@@ -827,6 +827,17 @@ generator.py
 	os.system ("hwaf")
 	print ">>> hwaf show pkg-tree"
 	os.system ("hwaf show pkg-tree")
+
+        for root, dirs, files in os.walk('.'):
+            for file in files:
+                if file == 'hscript.yml':
+                    p = os.path.basename (root)
+                    if p != "Settings_%s" % name:
+                        print root, dirs, files, p
+                        print ">>> hwaf run test%s" % p
+                        os.system ("hwaf run test%s" % p)
+
+
 	print ">>> cd .."
 	os.chdir ("..")
 

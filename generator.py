@@ -31,18 +31,19 @@ def create_dirs (path, end = ''):
         create_dirs (head, os.path.join (tail, end))
 
     try:
-        print '> mkdir %s' % (path)
+        #print '> mkdir %s' % (path)
         os.mkdir (path)
     except:
         pass
 
 CMTProjects = {}
 CMTPackages = {}
+Script = ''
     
 class CMTPackage:
     #---------------------------------------------------------
     def __init__ (self, project, prefix, package):
-	print 'creating the package %s %s' % (package, prefix)
+	#print 'creating the package %s %s' % (package, prefix)
 	self.project = project
 	self.prefix = prefix
 	self.name = package
@@ -57,7 +58,7 @@ class CMTPackage:
 
     #---------------------------------------------------------
     def cleanup (self):
-	print '> rmdir (%s)' % self.path
+	#print '> rmdir (%s)' % self.path
 	if os.path.exists(self.path):
 	    shutil.rmtree(self.path)
 
@@ -74,19 +75,19 @@ class CMTPackage:
 	#                                /src/
 
 	
-	print '> mkdir %(path)s/includes' % {'path':self.path}
+	#print '> mkdir %(path)s/includes' % {'path':self.path}
 	os.mkdir (os.path.join (self.path, "includes"))
 
-	print '> mkdir %(path)s/includes/%(package)s' % {'path':self.path, 'package':self.name}
+	#print '> mkdir %(path)s/includes/%(package)s' % {'path':self.path, 'package':self.name}
 	os.mkdir (os.path.join (self.path, "includes", self.name))
 
-	print '> mkdir %(path)s/src' % {'path':self.path}
+	#print '> mkdir %(path)s/src' % {'path':self.path}
 	os.mkdir (os.path.join (self.path, 'src'))
 
     #---------------------------------------------------------
     def set_headers (self):
 
-	print '> create %s/%s/Lib%s.hxx uses=%s' % (self.path, self.name, self.name, self.uses)
+	#print '> create %s/%s/Lib%s.hxx uses=%s' % (self.path, self.name, self.name, self.uses)
 
 	text = '''
 #ifndef __Lib%(p)s_hxx__
@@ -130,7 +131,7 @@ private:\n'''  % {"p":self.name}
     #---------------------------------------------------------
     def set_sources (self):
 
-	print '> create %s/src/Lib%s.cxx' % (self.path, self.name)
+	#print '> create %s/src/Lib%s.cxx' % (self.path, self.name)
 
 	text = '''// --------------------------------------
 #include <iostream>
@@ -163,7 +164,7 @@ void C%(p)s::f ()
     #---------------------------------------------------------
     def set_test (self):
 
-	print '> create %s/src/test%s.cxx' % (self.path, self.name)
+	#print '> create %s/src/test%s.cxx' % (self.path, self.name)
 
 	text = '''// --------------------------------------
 #include <iostream>
@@ -232,7 +233,7 @@ int main ()
     #---------------------------------------------------------
     def set (self):
 
-	print '----------- Set package %s' % (self.name)
+	#print '----------- Set package %s' % (self.name)
 
 	if len(CMTPackages) > 1:
 	    # get all packages but self
@@ -285,12 +286,12 @@ int main ()
 
     #---------------------------------------------------------
     def set_config_file (self):
-	print '> create %s/hscript.yml' % (self.path)
+	#print '> create %s/hscript.yml' % (self.path)
 
         longuses = [ 'Settings_%s' % self.project ]
 
 	longuses.extend ([CMTPackages[u].full_name for u in self.uses])
-	print 'longuses=%s' % longuses
+	#print 'longuses=%s' % longuses
 
 	deps = '''
   deps: {
@@ -330,7 +331,7 @@ configure: {
 build: {
 
   test%s: {
-    features: "cxx cxxprogram hwaf_install_headers",
+    features: "cxx cxxprogram hwaf_install_headers hwaf_export_lib",
     includes: "includes",
     export_includes: "includes",
     cwd: "includes",
@@ -339,7 +340,7 @@ build: {
   },
 
   Lib%s: {
-    features: "cxx cxxshlib hwaf_install_headers",
+    features: "cxx cxxshlib hwaf_install_headers hwaf_export_lib",
     includes: "includes",
     export_includes: "includes",
     cwd: "includes",
@@ -356,20 +357,21 @@ class Settings:
     #---------------------------------------------------------
     def __init__ (self, project):
         self.name = 'Settings_%s' % project
-	print 'creating the package %s' % (self.name)
+	#print 'creating the package %s' % (self.name)
         self.project = project
         self.path = os.path.join (project, 'src', self.name)	
 
     #---------------------------------------------------------
     def set_structure (self):
-        print '> mkdir %(path)s/src' % {'path':self.path}
+        global Script
+        #print '> mkdir %(path)s/src' % {'path':self.path}
         create_dirs (self.path)
-        pwd = os.path.dirname (os.path.realpath(__file__))
-        shutil.copy (os.path.join (pwd, 'install_headers.py'), self.path)
+        print 'Script=%s' % Script
+        shutil.copy (os.path.join (Script, 'install_headers.py'), self.path)
 
     #---------------------------------------------------------
     def set_config_file (self):
-        print '> create %s/hscript.yml' % (self.path)
+        #print '> create %s/hscript.yml' % (self.path)
 
         text = '''
 ## -*- yaml -*-
@@ -457,37 +459,37 @@ class CMTProject:
 		# if [A use B] was defined first, we need to remove A from the list of uses of B
 
 		uses = set(random.sample (keys, random.choice (range(len(keys)))))
-		print 'Original all used %s for project %s' % (uses, self.name)
+		#print 'Original all used %s for project %s' % (uses, self.name)
 		#for u in uses:
 		#    p = CMTProjects[u]
-		    
+    
 		toberemoved = set()
 		for u in uses:
 		    p = CMTProjects[u]
 		    if self.name in p.get_uses():
 			toberemoved.add(u)
 
-		print 'to be removed used %s' % (toberemoved)
+		#print 'to be removed used %s' % (toberemoved)
 		uses -= toberemoved
-		print 'Final all used %s' % (uses)
+		#print 'Final all used %s' % (uses)
 
 		self.uses = uses
 
-		print 'project %s uses = %s' % (self.name, self.uses)
+		#print 'project %s uses = %s' % (self.name, self.uses)
 
 
     #---------------------------------------------------------
     def cleanup (self):
-	print '> rmdir (%s)' % self.name
+	#print '> rmdir (%s)' % self.name
 	if os.path.exists(self.name):
 	    shutil.rmtree(self.name)
 
     #---------------------------------------------------------
     def set_structure (self):
-	print '> mkdir %s' % (self.name)
+	#print '> mkdir %s' % (self.name)
 	os.mkdir (self.name)
 
-	print '> mkdir %s/__build__' % (self.name)
+	#print '> mkdir %s/__build__' % (self.name)
 	os.mkdir (os.path.join (self.name, "__build__"))
 
         self.settings.set_structure ()
@@ -584,7 +586,7 @@ class CMTGenerator:
 	for project in range(projects):
 	    name = encode(project)
 	    packages = random.choice (xrange (self.max_packages)) + 1
-	    print 'creating the project %s' % (name)
+	    #print 'creating the project %s' % (name)
 	    CMTProjects[name] = CMTProject (name, first, packages)
 	    first += packages
 
@@ -697,10 +699,7 @@ node [shape=box]
 
 	write_text ("generator.dot", text)
 
-        print '''
-
-Show uses for projects:
-'''
+        print ''' >>>>> Show the use graph for projects: '''
 
         for k in set(CMTProjects.keys()):
             p = CMTProjects[k]
@@ -712,6 +711,7 @@ Show uses for projects:
                     child.parents.append (k)
                     text += "%s " % (u)
                 print text
+
 
     #---------------------------------------------------------
     def broadcast (self):
@@ -738,12 +738,18 @@ Interface = CMTInterface ()
 # Interface to waflib
 #----------------------------------------------------------------------------------------------------------------------
 
+import __main__
+
 
 if __name__ == "__main__":
     project = 'A'
     projects = 1
     packages = 5
     uses = []
+
+    Script = os.path.dirname (os.path.abspath(sys.modules['__main__'].__file__))
+    print 'script=%s' % Script
+
     
     if len(sys.argv) > 1:
 	for arg in sys.argv:
@@ -767,16 +773,30 @@ generator.py
     print 'projects=%d packages=%d uses=%s' % ( projects, packages, uses)
 
     if projects == 0:
-	print "You should ask for at one project"
+	print "Syntax: generator.py projects=[1] packages=[5]"
 	exit (1)
 
 	
-    Interface.generate_project (projects, packages)
-    print '''
-running into all projects
-'''
+    print ''' Creation d'un espace de test '''
+
+    test = 'test'
+
+    if os.path.exists (test):
+        print ">>> rmdir %s" % test
+        shutil.rmtree (test)
+
+    print ">>> mkdir %s" % test
+    os.mkdir (test)
+    print ">>> chdir %s" % test
+    os.chdir (test)
 
     base = os.getcwd ()
+
+    print ''' Creating projects into %s''' % base
+
+    Interface.generate_project (projects, packages)
+
+    #exit (1)
 
     b = Interface.broadcast ()
     for name in b:
@@ -795,11 +815,11 @@ running into all projects
 	    
 	print 'do %s with contexts=%s' % (name, contexts)
 
-	print ">>> hwaf init %s" % name
+	print "%s >>> hwaf init %s" % (os.getcwd (), name)
 	os.system ("hwaf init %s" % name)
-	print ">>> cd %s" % name
+	print "%s >>> cd %s" % (os.getcwd (), name)
 	os.chdir (name)
-	print ">>> hwaf setup %s" % contexts
+	print "%s >>> hwaf setup %s" % (os.getcwd (), contexts)
 	os.system ("hwaf setup %s" % contexts)
 	print ">>> hwaf configure"
 	os.system ("hwaf configure")
